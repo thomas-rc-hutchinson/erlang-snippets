@@ -10,13 +10,13 @@ test(ClientPid) ->
 					 httpGet("http://www.bing.com"), 
 					 httpGet("http://www.amazon.com")], ClientPid),
 	receive
-		HttpResponsHeaders -> handle_results(HttpResponsHeaders, [])
+		HttpResponse -> handle_results(HttpResponse, [])
 	end.
 
 
 %% extracts server
 handle_results([], Results) -> Results;
-handle_results([{Url, HttpRespHeaders}|Rest], Results) -> handle_results(Rest, Results ++ [{Url, header(headers(HttpRespHeaders), "server")}]). 
+handle_results([{Url, HttpResponse}|Rest], Results) -> handle_results(Rest, Results ++ [{Url, header(headers(HttpResponse), "server")}]). 
 
 
 
