@@ -6,8 +6,9 @@
 test() -> test(self()).
 test(ClientPid) -> 
 	application:start(inets),
-	spawn(fun() -> future([httpGet("http://www.google.com"), httpGet("http://www.bing.com"), httpGet("http://www.amazon.com")], 
-		ClientPid) end),
+	future_sequence([httpGet("http://www.google.com"), 
+					 httpGet("http://www.bing.com"), 
+					 httpGet("http://www.amazon.com")], ClientPid),
 	receive
 		HttpResponsHeaders -> handle_results(HttpResponsHeaders, [])
 	end.
@@ -19,11 +20,14 @@ handle_results([{Url, HttpRespHeaders}|Rest], Results) -> handle_results(Rest, R
 
 
 
+future_sequence(TaskList, ClientPid) -> spawn(fun() -> future(TaskList, ClientPid) end).
 future([Task|Remaining], ClientPid) -> await_results(future(Remaining, self(), [spawn_future(Task, self())]), [], ClientPid).
+
 
 %% spawn a process for each future
 future([], Pid, FuturePids) -> FuturePids;
 future([Task|Remaining], Pid, FuturePids) -> future(Remaining, Pid, FuturePids ++ [spawn_future(Task, Pid)]).
+
 
 
 %% Wait for all futures to complete
