@@ -1,16 +1,21 @@
 %% Inspired by Scala Future. A naive approach at looking how they could be incorporated into Erlang.
 
--module(client).
+-module(future).
 -compile(export_all).
 
 test() -> test(self()).
 test(ClientPid) -> 
-	spawn(fun() -> future([fun ws_lookup/0, fun db_lookup/0], ClientPid) end),
+	application:start(inets),
+	spawn(fun() -> future([httpGetServer("http://www.google.com"), httpGetServer("http://www.bing.com"), httpGetServer("http://www.amazon.com")], 
+		ClientPid) end),
 	receive
-		Results -> handle_results(Results)
+		HttpResponsHeaders -> handle_results(HttpResponsHeaders, [])
 	end.
 
-handle_results(Results) -> Results. %%do nothing
+
+%% extracts server
+handle_results([], Results) -> Results;
+handle_results([{Url, HttpRespHeaders}|Rest], Results) -> handle_results(Rest, Results ++ [{Url, header(HttpRespHeaders, "server")}]). 
 
 
 
@@ -36,6 +41,15 @@ remove_pid([OtherPid|Rest], Pid, NewPidList) -> remove_pid(Rest, Pid, NewPidList
 
 %% Invoke fun and send results to Pid
 spawn_future(Task, Pid) -> spawn(fun() -> Pid ! {self(), Task()} end).
+
+
+
+httpGetServer(Url) -> fun() -> {Url, headers(httpc:request(Url))} end.
+
+headers({ok, {Status, Headers, Body}}) -> Headers.
+header([{Header, Value}|Tail], Header) -> {Header,Value};
+header([{_, Value}|Tail], Header) -> header(Tail,Header).
+
 
 
 %% mock a webservice lookup
