@@ -6,7 +6,7 @@
 test() -> test(self()).
 test(ClientPid) -> 
 	application:start(inets),
-	spawn(fun() -> future([httpGetServer("http://www.google.com"), httpGetServer("http://www.bing.com"), httpGetServer("http://www.amazon.com")], 
+	spawn(fun() -> future([httpGet("http://www.google.com"), httpGet("http://www.bing.com"), httpGet("http://www.amazon.com")], 
 		ClientPid) end),
 	receive
 		HttpResponsHeaders -> handle_results(HttpResponsHeaders, [])
@@ -15,7 +15,7 @@ test(ClientPid) ->
 
 %% extracts server
 handle_results([], Results) -> Results;
-handle_results([{Url, HttpRespHeaders}|Rest], Results) -> handle_results(Rest, Results ++ [{Url, header(HttpRespHeaders, "server")}]). 
+handle_results([{Url, HttpRespHeaders}|Rest], Results) -> handle_results(Rest, Results ++ [{Url, header(headers(HttpRespHeaders), "server")}]). 
 
 
 
@@ -44,7 +44,7 @@ spawn_future(Task, Pid) -> spawn(fun() -> Pid ! {self(), Task()} end).
 
 
 
-httpGetServer(Url) -> fun() -> {Url, headers(httpc:request(Url))} end.
+httpGet(Url) -> fun() -> {Url, httpc:request(Url)} end.
 
 headers({ok, {Status, Headers, Body}}) -> Headers.
 header([{Header, Value}|Tail], Header) -> {Header,Value};
