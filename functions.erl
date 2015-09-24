@@ -38,4 +38,15 @@ cache_sleep() -> cache(fun sleep/1).
 sleep(Millis) -> 
 		receive
 		after Millis -> Millis
-	end.	
+	end.
+
+test() -> start_process(fun(X) -> io:format("Arg=~p~n", [X]) end).
+
+
+start_process(Function) -> spawn(fun() -> process(Function) end).
+
+process(Function) ->
+	receive 
+		Arg -> Function(Arg)
+	end.
+
