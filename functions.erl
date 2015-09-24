@@ -42,7 +42,6 @@ sleep(Millis) ->
 
 test() -> start_process(fun(X) -> io:format("Arg=~p~n", [X]) end).
 
-
 start_process(Function) -> spawn(fun() -> process(Function) end).
 
 process(Function) ->
@@ -50,3 +49,7 @@ process(Function) ->
 		Arg -> Function(Arg)
 	end.
 
+
+context() ->
+	put(millis, fun os:timestamp/0),
+	put(log, logger("Example", get(millis))).
