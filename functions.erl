@@ -53,3 +53,11 @@ process(Function) ->
 context() ->
 	put(millis, fun os:timestamp/0),
 	put(log, logger("Example", get(millis))).
+	
+
+test_compose() -> compose(fun dec/1, fun dec/1).
+inc(X) -> X+1.
+dec(X) -> X-1.
+
+
+compose(Function,Function2) -> fun(Arg) -> Function2(Function(Arg)) end.
